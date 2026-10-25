@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember &amp; Oak Burger Co. – Order online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Bitter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --char:#26180f; --oak:#4a2f1c; --oak-light:#5d3b24; --kraft:#cfae80; --kraft-light:#dcc196; --mustard:#e3a62a; --pickle:#4f5d26; --ketchup:#9c2c1b; --ink:#2b1d14;
+          --display:"Alfa Slab One","Rockwell",Georgia,serif; --body:"Bitter",Georgia,serif; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:1.0625rem/1.55 var(--body); color:var(--ink); background-color:var(--oak);
+         background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.28) 0 2px,transparent 2px 120px); }
+  :focus-visible { outline:3px solid var(--mustard); outline-offset:3px; }
+  button, input, textarea, select { font:inherit; }
+
+  .top { background:var(--char); color:var(--kraft-light); border-bottom:6px solid var(--mustard); padding:1rem 1.25rem; display:flex; flex-wrap:wrap; gap:.75rem 1.5rem; align-items:center; justify-content:space-between; }
+  .top h1 { margin:0; font:400 1.9rem/1.05 var(--display); color:var(--mustard); text-shadow:2px 2px 0 var(--ketchup); }
+  nav { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+  nav span { margin-right:.25rem; }
+
+  .btn { font-weight:700; background:var(--ketchup); color:#fff4e0; border:2px solid #fff4e0; border-radius:4px; padding:.55rem 1.1rem; cursor:pointer; }
+  .btn:hover { background:#b6331f; }
+  .btn.ghost { background:transparent; border-color:var(--kraft-light); color:var(--kraft-light); }
+  .btn.ghost:hover { background:var(--oak-light); }
+  .btn.small { padding:.3rem .8rem; font-size:.95rem; margin-top:.4rem; }
+
+  .tabbar { position:sticky; top:0; z-index:5; background:var(--char); border-bottom:2px solid var(--oak-light); }
+  .tabs { display:flex; gap:.25rem; max-width:52rem; margin:0 auto; padding:.6rem 1rem; overflow-x:auto; }
+  .tab { flex:1 0 auto; font-weight:700; color:var(--kraft-light); background:transparent; border:2px solid transparent; border-radius:4px; padding:.5rem 1.1rem; cursor:pointer; }
+  .tab:hover { border-color:var(--oak-light); }
+  .tab[aria-selected="true"] { background:var(--mustard); color:var(--char); }
+
+  main { max-width:52rem; margin:0 auto; padding:1.5rem 1rem 3rem; }
+  .banner { background:var(--char); color:var(--kraft-light); border-left:6px solid var(--mustard); padding:.8rem 1rem; margin-bottom:1.25rem; }
+  .filters { display:flex; gap:.6rem; margin-bottom:1.25rem; }
+  .chip { font-weight:600; color:var(--kraft-light); background:var(--char); border:2px solid var(--oak-light); border-radius:999px; padding:.25rem .9rem .25rem .45rem; display:inline-flex; align-items:center; gap:.5rem; cursor:pointer; }
+  .chip[aria-pressed="true"] { background:var(--kraft-light); color:var(--ink); border-color:var(--kraft-light); }
+
+  .board { background:var(--kraft); border:3px solid var(--char); box-shadow:0 0 0 6px var(--oak-light),8px 10px 0 rgba(0,0,0,.35); border-radius:3px; padding:1.5rem 1.25rem; }
+  .board h2 { margin:0 0 .5rem; font:400 2rem var(--display); color:var(--ketchup); }
+  .items { list-style:none; margin:0; padding:0; }
+  .item { padding:.85rem 0; border-top:2px dashed rgba(43,29,20,.35); }
+  .item:first-child { border-top:0; }
+  .row { display:flex; align-items:baseline; gap:.5rem; }
+  .name, .price { font-weight:700; font-size:1.2rem; }
+  .leader { flex:1; border-bottom:2px dotted rgba(43,29,20,.55); transform:translateY(-.3rem); min-width:1rem; }
+  .lock { font-style:italic; }
+  .desc { margin:.15rem 0 0; max-width:56ch; }
+  .badge { display:inline-grid; place-items:center; width:1.6rem; height:1.6rem; margin-left:.35rem; border-radius:50%; font:700 .68rem var(--body); color:#fff4e0; border:2px solid var(--ink); vertical-align:middle; }
+  .badge.vegan { background:var(--pickle); } .badge.gf { background:var(--oak); }
+  .chip .badge { margin-left:0; }
+
+  dialog { width:min(32rem,calc(100% - 1.5rem)); max-height:92vh; background:var(--kraft); color:var(--ink); border:3px solid var(--char); box-shadow:8px 10px 0 rgba(0,0,0,.4); padding:1.25rem; }
+  dialog::backdrop { background:rgba(20,10,4,.65); }
+  dialog h2 { margin:0 0 .75rem; font:400 1.6rem var(--display); color:var(--ketchup); }
+  label { display:block; font-weight:600; margin:.7rem 0 .2rem; }
+  input, textarea, select { width:100%; padding:.5rem .6rem; background:#fff8ea; color:var(--ink); border:2px solid var(--char); border-radius:3px; }
+  textarea { min-height:4.5rem; resize:vertical; }
+  .actions { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1rem; align-items:center; }
+  .err { color:var(--ketchup); font-weight:700; min-height:1.4rem; margin:.5rem 0 0; }
+  .linkbtn { background:none; border:0; text-decoration:underline; cursor:pointer; color:inherit; padding:0; }
+
+  .line { padding:.6rem 0; border-top:2px dashed rgba(43,29,20,.35); }
+  .line:first-of-type { border-top:0; }
+  .line .row { align-items:center; }
+  .qty { display:inline-flex; align-items:center; gap:.4rem; }
+  .qty button { width:2rem; height:2rem; font-weight:700; background:var(--char); color:var(--kraft-light); border:0; border-radius:3px; cursor:pointer; }
+  .line input { margin-top:.35rem; font-size:.95rem; }
+  .total { display:flex; justify-content:space-between; font-weight:700; font-size:1.25rem; border-top:3px solid var(--char); padding-top:.6rem; margin-top:.5rem; }
+  .order { border:2px solid var(--char); padding:.7rem .8rem; margin-bottom:.8rem; background:#e2c9a0; }
+  .order small { display:block; }
+  .scroll { max-height:60vh; overflow-y:auto; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Ember &amp; Oak Burger Co.</h1>
+  <nav id="nav"></nav>
+</header>
+
+<div class="tabbar"><div class="tabs" role="tablist" id="tabs"></div></div>
+
+<main>
+  <div id="guestBanner" class="banner" hidden>Sign in or create an account to see prices and place an order.</div>
+  <div class="filters" role="group" aria-label="Dietary filters">
+    <button class="chip" data-filter="vegan" aria-pressed="false"><span class="badge vegan" aria-hidden="true">VG</span>Vegan</button>
+    <button class="chip" data-filter="gf" aria-pressed="false"><span class="badge gf" aria-hidden="true">GF</span>Gluten-free</button>
+  </div>
+  <section class="board" id="panel"></section>
+  <p style="color:var(--kraft-light);font-size:.9rem">GF means gluten-free or available on a gluten-free bun. Please write any allergies in the item details when you order.</p>
+</main>
+
+<!-- Sign in / create account -->
+<dialog id="authDlg">
+  <h2 id="authTitle">Sign in</h2>
+  <form id="authForm">
+    <div id="regOnly" hidden>
+      <label for="aName">Your name</label><input id="aName" autocomplete="name">
+      <label for="aPhone">Phone (optional)</label><input id="aPhone" type="tel" autocomplete="tel">
+    </div>
+    <label for="aEmail">Email</label><input id="aEmail" type="email" required autocomplete="email">
+    <label for="aPass">Password (8+ characters)</label><input id="aPass" type="password" required minlength="8" autocomplete="current-password">
+    <p class="err" id="authErr" role="alert"></p>
+    <div class="actions">
+      <button class="btn" id="authSubmit">Sign in</button>
+      <button type="button" class="btn ghost" style="color:var(--ink);border-color:var(--ink)" data-close>Cancel</button>
+      <button type="button" class="linkbtn" id="authSwitch">New here? Create an account</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Cart and checkout -->
+<dialog id="cartDlg">
+  <h2>Your order</h2>
+  <div id="cartBody"></div>
+</dialog>
+
+<!-- Orders -->
+<dialog id="ordersDlg">
+  <h2 id="ordersTitle">My orders</h2>
+  <div class="scroll" id="ordersBody"></div>
+  <div class="actions"><button class="btn" data-close>Close</button></div>
+</dialog>
+
+<script>
+  const CURRENCY = "$";
+  const STATUSES = ["new", "preparing", "on the way", "delivered", "cancelled"];
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const money = c => CURRENCY + (c / 100).toFixed(2);
+  const FULL = { vegan: ["VG", "Vegan"], gf: ["GF", "Gluten-free"] };
+
+  let me = null, menu = [], tab = null, cart = [], filt = { vegan: false, gf: false }, mode = "login";
+
+  async function api(url, method = "GET", body) {
+    const r = await fetch(url, { method, headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || "Something went wrong. Please try again.");
+    return data;
+  }
+
+  /* ----- Menu ----- */
+  const badges = tags => tags.map(t => FULL[t] ? `<span class="badge ${t}" title="${FULL[t][1]}" aria-label="${FULL[t][1]}">${FULL[t][0]}</span>` : "").join("");
+
+  function renderMenu() {
+    const cats = [...new Set(menu.map(i => i.category))];
+    if (!cats.includes(tab)) tab = cats[0];
+    $("#tabs").innerHTML = cats.map(c => `<button class="tab" role="tab" aria-selected="${c === tab}" data-tab="${esc(c)}">${esc(c)}</button>`).join("");
+    const items = menu.filter(i => i.category === tab && (!filt.vegan || i.tags.includes("vegan")) && (!filt.gf || i.tags.includes("gf")));
+    $("#panel").innerHTML = `<h2>${esc(tab)}</h2>` + (items.length
+      ? `<ul class="items">` + items.map(i => `<li class="item"><div class="row"><span class="name">${esc(i.name)}${badges(i.tags)}</span><span class="leader"></span>` +
+          (me ? `<span class="price">${money(i.price)}</span>` : `<span class="lock">Sign in to see price</span>`) +
+          `</div><p class="desc">${esc(i.descr)}</p>` +
+          (me ? `<button class="btn small" data-add="${i.id}">Add to order</button>` : "") + `</li>`).join("") + `</ul>`
+      : `<p>No items match those filters. Try turning one off.</p>`);
+    $("#guestBanner").hidden = !!me;
+  }
+
+  function renderNav() {
+    const count = cart.reduce((n, l) => n + l.qty, 0);
+    $("#nav").innerHTML = me
+      ? `<span>Hi, ${esc(me.name.split(" ")[0])}</span>
+         <button class="btn ghost" data-act="orders">${me.isAdmin ? "All orders" : "My orders"}</button>
+         <button class="btn" data-act="cart">Order (${count})</button>
+         <button class="btn ghost" data-act="logout">Sign out</button>`
+      : `<button class="btn ghost" data-act="login">Sign in</button><button class="btn" data-act="register">Create account</button>`;
+  }
+
+  async function loadMenu() { menu = await api("/api/menu"); renderMenu(); renderNav(); }
+
+  /* ----- Sign in / register ----- */
+  function openAuth(m) {
+    mode = m;
+    const reg = m === "register";
+    $("#authTitle").textContent = reg ? "Create account" : "Sign in";
+    $("#authSubmit").textContent = reg ? "Create account" : "Sign in";
+    $("#authSwitch").textContent = reg ? "Already have an account? Sign in" : "New here? Create an account";
+    $("#regOnly").hidden = !reg;
+    $("#aName").required = reg;
+    $("#aPass").autocomplete = reg ? "new-password" : "current-password";
+    $("#authErr").textContent = "";
+    $("#authDlg").showModal();
+  }
+
+  $("#authSwitch").onclick = () => openAuth(mode === "login" ? "register" : "login");
+  $("#authForm").onsubmit = async e => {
+    e.preventDefault();
+    try {
+      const body = { email: $("#aEmail").value, password: $("#aPass").value };
+      if (mode === "register") { body.name = $("#aName").value; body.phone = $("#aPhone").value; }
+      me = (await api("/api/" + mode, "POST", body)).user;
+      $("#authForm").reset();
+      $("#authDlg").close();
+      await loadMenu();
+    } catch (err) { $("#authErr").textContent = err.message; }
+  };
+
+  /* ----- Cart and checkout ----- */
+  function renderCart(msg = "") {
+    if (!cart.length) {
+      $("#cartBody").innerHTML = `<p>${msg || "Your order is empty. Add something from the menu."}</p><div class="actions"><button class="btn" data-close>Back to menu</button></div>`;
+      return;
+    }
+    const total = cart.reduce((s, l) => s + l.price * l.qty, 0);
+    $("#cartBody").innerHTML = `<div class="scroll">` + cart.map((l, i) => `
+      <div class="line"><div class="row"><span class="name">${esc(l.name)}</span><span class="leader"></span>
+        <span class="qty"><button data-q="${i}" data-d="-1" aria-label="Remove one">−</button><b>${l.qty}</b><button data-q="${i}" data-d="1" aria-label="Add one">+</button></span>
+        <span class="price" style="min-width:4.5rem;text-align:right">${money(l.price * l.qty)}</span></div>
+        <input data-note="${i}" maxlength="200" placeholder="Details for this item (no onions, extra sauce, shake flavor...)" value="${esc(l.note)}" aria-label="Details for ${esc(l.name)}"></div>`).join("") + `</div>
+      <div class="total"><span>Total</span><span>${money(total)}</span></div>
+      <form id="checkout">
+        <label for="cAddr">Delivery address</label><textarea id="cAddr" required maxlength="300" placeholder="Street, number, apartment, floor, door code">${esc(me.address)}</textarea>
+        <label for="cPhone">Phone number</label><input id="cPhone" type="tel" maxlength="30" value="${esc(me.phone)}">
+        <label for="cNotes">Notes for the whole order (optional)</label><textarea id="cNotes" maxlength="500" placeholder="Allergies, delivery instructions..."></textarea>
+        <p class="err" role="alert">${esc(msg)}</p>
+        <div class="actions"><button class="btn">Place order</button><button type="button" class="btn ghost" style="color:var(--ink);border-color:var(--ink)" data-close>Keep browsing</button></div>
+      </form>`;
+  }
+
+  /* ----- Orders ----- */
+  async function openOrders() {
+    $("#ordersBody").textContent = "Loading...";
+    $("#ordersDlg").showModal();
+    try {
+      const { staff, orders } = await api("/api/orders");
+      $("#ordersTitle").textContent = staff ? "All orders" : "My orders";
+      $("#ordersBody").innerHTML = orders.length ? orders.map(o => `
+        <div class="order"><b>Order #${o.id}</b> · ${money(o.total_cents)} · ${esc(o.created_at)} UTC
+          ${staff ? `<small>${esc(o.customer)} · ${esc(o.email)} · ${esc(o.phone)}</small>` : ""}
+          <small>Deliver to: ${esc(o.address)}</small>
+          <ul>${o.items.map(i => `<li>${i.qty} × ${esc(i.name)}${i.note ? ` <i>(${esc(i.note)})</i>` : ""}</li>`).join("")}</ul>
+          ${o.notes ? `<small>Notes: ${esc(o.notes)}</small>` : ""}
+          ${staff ? `<label>Status <select data-status="${o.id}">${STATUSES.map(s => `<option${s === o.status ? " selected" : ""}>${s}</option>`).join("")}</select></label>`
+                  : `<small><b>Status: ${esc(o.status)}</b></small>`}
+        </div>`).join("") : "<p>No orders yet.</p>";
+    } catch (err) { $("#ordersBody").textContent = err.message; }
+  }
+
+  /* ----- Clicks and input ----- */
+  document.addEventListener("click", async e => {
+    const t = e.target.closest("button");
+    if (!t) return;
+    if (t.dataset.close !== undefined) t.closest("dialog").close();
+    if (t.dataset.tab) { tab = t.dataset.tab; renderMenu(); }
+    if (t.dataset.filter) { filt[t.dataset.filter] = !filt[t.dataset.filter]; t.setAttribute("aria-pressed", filt[t.dataset.filter]); renderMenu(); }
+    if (t.dataset.add) {
+      const it = menu.find(i => i.id == t.dataset.add), line = cart.find(l => l.id === it.id && !l.note);
+      line ? line.qty++ : cart.push({ id: it.id, name: it.name, price: it.price, qty: 1, note: "" });
+      renderNav();
+      t.textContent = "Added ✓"; setTimeout(() => t.textContent = "Add to order", 900);
+    }
+    if (t.dataset.q) {
+      const l = cart[t.dataset.q]; l.qty = Math.min(20, l.qty + Number(t.dataset.d));
+      if (l.qty < 1) cart.splice(t.dataset.q, 1);
+      renderCart(); renderNav();
+    }
+    switch (t.dataset.act) {
+      case "login": case "register": openAuth(t.dataset.act); break;
+      case "cart": renderCart(); $("#cartDlg").showModal(); break;
+      case "orders": openOrders(); break;
+      case "logout": await api("/api/logout", "POST", {}); me = null; cart = []; await loadMenu(); break;
+    }
+  });
+
+  document.addEventListener("input", e => { if (e.target.dataset.note !== undefined) cart[e.target.dataset.note].note = e.target.value; });
+  document.addEventListener("change", async e => {
+    if (e.target.dataset.status) {
+      try { await api("/api/orders/" + e.target.dataset.status, "PATCH", { status: e.target.value }); } catch (err) { alert(err.message); }
+    }
+  });
+
+  document.addEventListener("submit", async e => {
+    if (e.target.id !== "checkout") return;
+    e.preventDefault();
+    const body = { items: cart.map(l => ({ id: l.id, qty: l.qty, note: l.note })), address: $("#cAddr").value, phone: $("#cPhone").value, notes: $("#cNotes").value };
+    try {
+      const r = await api("/api/orders", "POST", body);
+      me.address = body.address; me.phone = body.phone; cart = [];
+      renderNav(); renderCart(`Thank you! Order #${r.orderId} is placed. Total: ${money(r.total)}. You can follow its status in My orders.`);
+    } catch (err) { renderCart(err.message); $("#cAddr").value = body.address; }
+  });
+
+  (async () => {
+    try { me = (await api("/api/me")).user; } catch {}
+    loadMenu();
+  })();
+</script>
+</body>
+</html>
